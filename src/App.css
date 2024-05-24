@@ -10,6 +10,7 @@
 
 .DraggableInput{
   border: 1px solid black;
+  outline: none;
 }
 
 .DraggableButton{
