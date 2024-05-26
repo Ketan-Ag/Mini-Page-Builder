@@ -9,7 +9,8 @@
 @tailwind utilities;
 
 .selectedLable{
-  border: 2px solid rgb(221, 82, 82);
+  padding: 2px;
+  border: 2px solid rgb(221, 82, 82) !important;
 }
 
 .DraggableInput{

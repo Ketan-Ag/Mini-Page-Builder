@@ -16,6 +16,9 @@ const Home = () => {
     const [lableYCord, setLableYCord] = useState();
     const [lableFontSize, setLableFontSize] = useState(16)
     const [lableFontWeight, setLableFontWeight] = useState(300);
+    const [selectedElement, setSelectedElement] = useState(null);
+    const [isAlreadyFormed, setIsAlreadyFormed] = useState(false);
+    const selectedElementRef = useRef();
 
 
     const customStyles = {
@@ -74,6 +77,7 @@ const Home = () => {
 
                 const newElement = document.createElement('input');
                 newElement.draggable = true
+                newElement.classList.add("Draggable")
                 newElement.classList.add("DraggableInput")
                 newElement.style.position = "absolute"
                 newElement.style.left = `${e.clientX}px`
@@ -89,6 +93,7 @@ const Home = () => {
             buttonDrag.addEventListener("dragend", e => {
                 buttonDrag.classList.remove("opacity-50")
                 const newElement = document.createElement("button");
+                newElement.classList.add("Draggable")
                 newElement.classList.add("DraggableButton")
                 newElement.innerHTML = "Button"
                 newElement.draggable = true
@@ -121,38 +126,59 @@ const Home = () => {
 
     useEffect(() => {
         const handleMouseDown = (e) => {
-            document.querySelectorAll(".DraggableLable").forEach((ele) => {
-                if(ele==e.target){
-                    ele.classList.add("selectedLable")
-                }
-            })
-             
+
+            if (e.target == screenRef.current) {
+                // selectedElementRef.current = null
+                // setSelectedElement(null);
+                const selectedLables = document.querySelectorAll(".selectedLable")
+                selectedLables.forEach((ele) => {
+                    ele.classList.remove("selectedLable")
+                })
+
+            } else {
+
+                document.querySelectorAll(".Draggable").forEach((ele) => {
+                    if (ele == e.target) {
+                        setSelectedElement(prev => ele);
+                        selectedElementRef.current = ele;
+                        ele.classList.add("selectedLable")
+                    }
+                })
+            }
+
         }
 
-        screenRef.current.addEventListener("mousedown",handleMouseDown)
+        screenRef.current.addEventListener("mousedown", handleMouseDown)
 
-        return()=>{
-            screenRef.current.removeEventListener("mousedown", ()=>{});
+        return () => {
+            screenRef.current.removeEventListener("mousedown", () => { });
         }
     }, [])
-    
+
 
     const createNewLable = () => {
-        const newElement = document.createElement('div');
-        newElement.textContent = lableTitle;
-        newElement.draggable = true
-        // newElement.classList.add("NewItemAdded");
-        newElement.classList.add("DraggableLable")
-        newElement.style.position = "absolute"
-        newElement.style.left = `${lableXCord}px`
-        newElement.style.top = `${lableYCord}px`
-        newElement.style.fontWeight = lableFontWeight
-        newElement.style.fontSize = `${lableFontSize}px`
-        setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-        screenRef.current.append(newElement);
+        if (isAlreadyFormed) {
+            selectedElementRef.current.textContent = lableTitle;
+            selectedElementRef.current.style.left = `${lableXCord}px`
+            selectedElementRef.current.style.top = `${lableYCord}px`
+            selectedElementRef.current.style.fontWeight = lableFontWeight
+            selectedElementRef.current.style.fontSize = `${lableFontSize}px`
+        } else {
+            const newElement = document.createElement('div');
+            newElement.textContent = lableTitle;
+            newElement.draggable = true;
+            newElement.classList.add("Draggable")
+            newElement.classList.add("DraggableLable")
+            newElement.style.position = "absolute"
+            newElement.style.left = `${lableXCord}px`
+            newElement.style.top = `${lableYCord}px`
+            newElement.style.fontWeight = lableFontWeight
+            newElement.style.fontSize = `${lableFontSize}px`
+            setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+            screenRef.current.append(newElement);
+        }
         setisModalOpen(prev => false)
-        setLableFontSize(16);
-        setLableFontWeight(300);
+
     }
 
 
@@ -164,21 +190,53 @@ const Home = () => {
         })
     })
 
-    // document.querySelectorAll(".selectedLable").forEach((ele) => {
-    //     console.log('ele', ele)
-    //     ele.addEventListener("keydown", (e)=>{
-    //         console.log('e, ele', e, ele)
-    //     })
-    // })
 
-    // useEffect(()=>{
+    useEffect(() => {
+        if (selectedElement != null) {
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && selectedElement.classList.contains("selectedLable")) {
+                    setIsAlreadyFormed(prev => true)
+                    setisModalOpen(prev => true)
+                    setLableTitle(selectedElement.textContent)
+                    setLableYCord(Number(selectedElement.style.top.split("px")[0]))
+                    setLableXCord(Number(selectedElement.style.left.split("px")[0]))
+                    setLableFontSize(Number(selectedElement.style.fontSize.split("px")[0]))
+                    setLableFontWeight(Number(selectedElement.style.fontWeight))
+                }
+                else if (e.key === "Delete") {
+                    screenRef.current.childNodes.forEach((ele) => {
+                        if (ele === selectedElementRef.current) {
+                            setDraggables(draggables => draggables.filter(eleDraggables => {
+                                return eleDraggables !== ele
+                            }))
+                            screenRef.current.removeChild(ele);
+                        }
+                        else{
+                            ele.classList.remove("selectedLable");
+                        }
+                    })
+                }
 
-    // },[])
+            })
+
+            return () => {
+                window.removeEventListener("keydown", () => { })
+            }
+        }
+    }, [selectedElement])
 
 
-    useEffect(()=>{
+    useEffect(() => {
         Modal.setAppElement("body")
-    },[])
+    }, [])
+
+    useEffect(() => {
+        console.log('draggables', draggables)
+    }, [draggables])
+
+    useEffect(() => {
+        console.log('selectedElementRef', selectedElementRef)
+    }, [selectedElementRef.current])
 
 
 
