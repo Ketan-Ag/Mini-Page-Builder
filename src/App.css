@@ -8,6 +8,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.selectedLable{
+  border: 2px solid rgb(221, 82, 82);
+}
+
 .DraggableInput{
   border: 1px solid black;
   outline: none;

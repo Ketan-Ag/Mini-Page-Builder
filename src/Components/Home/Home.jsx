@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
+import Modal from 'react-modal';
+import ModalForm from '../ModalForm/ModalForm';
 
 const Home = () => {
 
@@ -7,6 +9,26 @@ const Home = () => {
     const buttonRef = useRef(null);
     const screenRef = useRef(null);
     const [draggables, setDraggables] = useState([])
+    const [isModalOpen, setisModalOpen] = useState(false);
+
+    const [lableTitle, setLableTitle] = useState("This is a label");
+    const [lableXCord, setLableXCord] = useState();
+    const [lableYCord, setLableYCord] = useState();
+    const [lableFontSize, setLableFontSize] = useState(16)
+    const [lableFontWeight, setLableFontWeight] = useState(300);
+
+
+    const customStyles = {
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            width: '40vw',
+            transform: 'translate(-50%, -50%)'
+        },
+    };
 
     useEffect(() => {
         const label = labelRef.current;
@@ -16,22 +38,30 @@ const Home = () => {
 
         if (label && input && screen && buttonDrag) {
             label.addEventListener("dragstart", e => {
-                
+
             })
 
             label.addEventListener("dragend", e => {
+
                 label.classList.remove("opacity-50")
-                const newElement = document.createElement('div');
-                newElement.textContent = 'I am a new child element';
-                newElement.draggable = true
-                // newElement.classList.add("NewItemAdded");
-                newElement.classList.add("DraggableLable")
-                newElement.style.position = "absolute"
-                newElement.style.left = `${e.clientX}px`
-                newElement.style.top = `${e.clientY}px`
-                // draggedElement.current = newElement;
-                setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-                screen.append(newElement);
+                setLableXCord(prev => e.clientX)
+                setLableYCord(prev => e.clientY)
+                setisModalOpen(prev => true);
+
+                // var rect = label.getBoundingClientRect();
+                // var x = e.clientX - rect.left;
+                // var y = e.clientY - rect.top;
+                // console.log('first', e.clientX)
+                // console.log('sec', rect)
+
+                // if (isModalOpen == false) {
+                //     newElement.style.left = `${lableXCord}px`
+                //     newElement.style.top = `${lableYCord}px`
+                //     setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+                //     screen.append(newElement);
+                // }
+
+
             });
 
 
@@ -88,7 +118,44 @@ const Home = () => {
 
     }, [])
 
+
+    useEffect(() => {
+        const handleMouseDown = (e) => {
+            document.querySelectorAll(".DraggableLable").forEach((ele) => {
+                if(ele==e.target){
+                    ele.classList.add("selectedLable")
+                }
+            })
+             
+        }
+
+        screenRef.current.addEventListener("mousedown",handleMouseDown)
+
+        return()=>{
+            screenRef.current.removeEventListener("mousedown", ()=>{});
+        }
+    }, [])
     
+
+    const createNewLable = () => {
+        const newElement = document.createElement('div');
+        newElement.textContent = lableTitle;
+        newElement.draggable = true
+        // newElement.classList.add("NewItemAdded");
+        newElement.classList.add("DraggableLable")
+        newElement.style.position = "absolute"
+        newElement.style.left = `${lableXCord}px`
+        newElement.style.top = `${lableYCord}px`
+        newElement.style.fontWeight = lableFontWeight
+        newElement.style.fontSize = `${lableFontSize}px`
+        setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+        screenRef.current.append(newElement);
+        setisModalOpen(prev => false)
+        setLableFontSize(16);
+        setLableFontWeight(300);
+    }
+
+
     draggables.forEach(draggable => {
 
         draggable.addEventListener('dragend', (e) => {
@@ -97,11 +164,51 @@ const Home = () => {
         })
     })
 
+    // document.querySelectorAll(".selectedLable").forEach((ele) => {
+    //     console.log('ele', ele)
+    //     ele.addEventListener("keydown", (e)=>{
+    //         console.log('e, ele', e, ele)
+    //     })
+    // })
+
+    // useEffect(()=>{
+
+    // },[])
+
+
+    useEffect(()=>{
+        Modal.setAppElement("body")
+    },[])
+
+
 
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
             <div className="bg-red-400 flex-grow">
                 <div ref={screenRef} className="h-full pageBuilderScreen"></div>
+                <Modal
+                    isOpen={isModalOpen}
+                    onRequestClose={() => { setisModalOpen(false) }}
+                    style={customStyles}
+                >
+                    <ModalForm
+                        setisModalOpen={setisModalOpen}
+                        lableTitle={lableTitle}
+                        setLableTitle={setLableTitle}
+                        lableXCord={lableXCord}
+                        setLableXCord={setLableXCord}
+                        lableYCord={lableYCord}
+                        setLableYCord={setLableYCord}
+                        lableFontSize={lableFontSize}
+                        setLableFontSize={setLableFontSize}
+                        lableFontWeight={lableFontWeight}
+                        setLableFontWeight={setLableFontWeight}
+                        createNewLable={createNewLable}
+                    />
+
+
+                </Modal>
+
             </div>
             <div className="bg-[#2D2D2D] w-[20vw] ml-auto p-5">
                 <div className='font-semibold text-2xl text-white select-none'>Blocks</div>
