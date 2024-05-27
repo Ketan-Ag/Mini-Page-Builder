@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Modal from 'react-modal';
 import ModalForm from '../ModalForm/ModalForm';
+import { exportJson } from '../../utils/ExportJson';
 
 const Home = () => {
 
@@ -19,6 +20,8 @@ const Home = () => {
     const [selectedElement, setSelectedElement] = useState(null);
     const [isAlreadyFormed, setIsAlreadyFormed] = useState(false);
     const selectedElementRef = useRef();
+
+    const [ExportableObject, setExportableObject] = useState([])
 
 
     const customStyles = {
@@ -82,8 +85,15 @@ const Home = () => {
                 newElement.style.position = "absolute"
                 newElement.style.left = `${e.clientX}px`
                 newElement.style.top = `${e.clientY}px`
+                newElement.style.fontWeight = 700
                 setDraggables((prevDraggables) => [...prevDraggables, newElement]);
                 screen.append(newElement)
+                const newInputObject = {
+                    tag: "input",
+                    xCord: e.clientX,
+                    yCord: e.clientY,
+                }
+                setExportableObject(prevExportableObject => [...prevExportableObject, newInputObject]);
             });
 
             buttonDrag.addEventListener("dragstart", e => {
@@ -102,6 +112,12 @@ const Home = () => {
                 newElement.style.top = `${e.clientY}px`
                 setDraggables((prevDraggables) => [...prevDraggables, newElement]);
                 screen.append(newElement)
+                const newButtonObject = {
+                    tag: "button",
+                    xCord: e.clientX,
+                    yCord: e.clientY,
+                }
+                setExportableObject(prevExportableObject => [...prevExportableObject, newButtonObject]);
             });
 
             screen.addEventListener('dragover', (e) => {
@@ -158,11 +174,30 @@ const Home = () => {
 
     const createNewLable = () => {
         if (isAlreadyFormed) {
+            const prevLeft = selectedElementRef.current.style.left
+            const prevTop = selectedElementRef.current.style.top
+
             selectedElementRef.current.textContent = lableTitle;
             selectedElementRef.current.style.left = `${lableXCord}px`
             selectedElementRef.current.style.top = `${lableYCord}px`
             selectedElementRef.current.style.fontWeight = lableFontWeight
             selectedElementRef.current.style.fontSize = `${lableFontSize}px`
+
+            setExportableObject((prev) => {
+                return prev.map((obj) => {
+                    if (obj && `${obj.xCord}px` == prevLeft && `${obj.yCord}px` == prevTop) {
+                        return {
+                            ...obj,
+                            title: lableTitle,
+                            xCord: parseInt(lableXCord),
+                            yCord: parseInt(lableYCord),
+                            fontSize: parseInt(lableFontSize),
+                            fontWeight: parseInt(lableFontWeight)
+                        }
+                    } else return obj
+                })
+            })
+
         } else {
             const newElement = document.createElement('div');
             newElement.textContent = lableTitle;
@@ -176,6 +211,15 @@ const Home = () => {
             newElement.style.fontSize = `${lableFontSize}px`
             setDraggables((prevDraggables) => [...prevDraggables, newElement]);
             screenRef.current.append(newElement);
+            const newLableObject = {
+                tag: "div",
+                title: lableTitle,
+                xCord: parseInt(lableXCord),
+                yCord: parseInt(lableYCord),
+                fontSize: parseInt(lableFontSize),
+                fontWeight: parseInt(lableFontWeight)
+            }
+            setExportableObject(prevExportableObject => [...prevExportableObject, newLableObject]);
         }
         setisModalOpen(prev => false)
 
@@ -185,8 +229,23 @@ const Home = () => {
     draggables.forEach(draggable => {
 
         draggable.addEventListener('dragend', (e) => {
+            const left = Number(draggable.style.left.split("px")[0])
+            const top = Number(draggable.style.top.split("px")[0])
+            setExportableObject((prev) => {
+                return prev.map((obj) => {
+                    if (obj && obj.xCord == left && obj.yCord == top) {
+                        return {
+                            ...obj,
+                            xCord: e.clientX,
+                            yCord: e.clientY
+                        }
+                    } else return obj
+                })
+            })
             draggable.style.left = `${e.clientX}px`
             draggable.style.top = `${e.clientY}px`
+
+
         })
     })
 
@@ -201,7 +260,7 @@ const Home = () => {
                     setLableYCord(Number(selectedElement.style.top.split("px")[0]))
                     setLableXCord(Number(selectedElement.style.left.split("px")[0]))
                     setLableFontSize(Number(selectedElement.style.fontSize.split("px")[0]))
-                    setLableFontWeight(Number(selectedElement.style.fontWeight))
+                    setLableFontWeight(parseInt(selectedElement.style.fontWeight))
                 }
                 else if (e.key === "Delete") {
                     screenRef.current.childNodes.forEach((ele) => {
@@ -211,9 +270,16 @@ const Home = () => {
                             }))
                             screenRef.current.removeChild(ele);
                         }
-                        else{
+                        else {
                             ele.classList.remove("selectedLable");
                         }
+                    })
+
+                    setExportableObject((prev) => {
+                        return prev.filter(ele => {
+                            // return ele!=selectedElementRef.current
+                            return (`${ele.xCord}` != selectedElementRef.current.style.left && `${ele.yCord}` != selectedElementRef.current.style.top)
+                        })
                     })
                 }
 
@@ -231,8 +297,8 @@ const Home = () => {
     }, [])
 
     useEffect(() => {
-        console.log('draggables', draggables)
-    }, [draggables])
+        console.log('ExportableObject', ExportableObject)
+    }, [ExportableObject])
 
     useEffect(() => {
         console.log('selectedElementRef', selectedElementRef)
@@ -242,8 +308,16 @@ const Home = () => {
 
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
-            <div className="bg-red-400 flex-grow">
-                <div ref={screenRef} className="h-full pageBuilderScreen"></div>
+            <div className="bg-red-400 flex-grow relative select-none">
+                <div ref={screenRef} className="h-full pageBuilderScreen">
+                    <button
+                        onClick={() => { 
+                            exportJson(ExportableObject) 
+                            setExportableObject([])
+                        }}
+                        className='absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded outline-none'
+                    >Export</button>
+                </div>
                 <Modal
                     isOpen={isModalOpen}
                     onRequestClose={() => { setisModalOpen(false) }}
