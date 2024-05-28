@@ -50,22 +50,13 @@ const Home = () => {
             label.addEventListener("dragend", e => {
 
                 label.classList.remove("opacity-50")
-                setLableXCord(prev => e.clientX)
-                setLableYCord(prev => e.clientY)
-                setisModalOpen(prev => true);
-
-                // var rect = label.getBoundingClientRect();
-                // var x = e.clientX - rect.left;
-                // var y = e.clientY - rect.top;
-                // console.log('first', e.clientX)
-                // console.log('sec', rect)
-
-                // if (isModalOpen == false) {
-                //     newElement.style.left = `${lableXCord}px`
-                //     newElement.style.top = `${lableYCord}px`
-                //     setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-                //     screen.append(newElement);
-                // }
+                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
+                    alert("Cannot place in sidebar")
+                } else {
+                    setLableXCord(prev => e.clientX)
+                    setLableYCord(prev => e.clientY)
+                    setisModalOpen(prev => true);
+                }
 
 
             });
@@ -77,23 +68,28 @@ const Home = () => {
 
             input.addEventListener("dragend", e => {
                 label.classList.remove("opacity-50")
+                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
+                    alert("Cannot place in sidebar")
+                } else {
 
-                const newElement = document.createElement('input');
-                newElement.draggable = true
-                newElement.classList.add("Draggable")
-                newElement.classList.add("DraggableInput")
-                newElement.style.position = "absolute"
-                newElement.style.left = `${e.clientX}px`
-                newElement.style.top = `${e.clientY}px`
-                newElement.style.fontWeight = 700
-                setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-                screen.append(newElement)
-                const newInputObject = {
-                    tag: "input",
-                    xCord: e.clientX,
-                    yCord: e.clientY,
+
+                    const newElement = document.createElement('input');
+                    newElement.draggable = true
+                    newElement.classList.add("Draggable")
+                    newElement.classList.add("DraggableInput")
+                    newElement.style.position = "absolute"
+                    newElement.style.left = `${e.clientX}px`
+                    newElement.style.top = `${e.clientY}px`
+                    newElement.style.fontWeight = 700
+                    setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+                    screen.append(newElement)
+                    const newInputObject = {
+                        tag: "input",
+                        xCord: e.clientX,
+                        yCord: e.clientY,
+                    }
+                    setExportableObject(prevExportableObject => [...prevExportableObject, newInputObject]);
                 }
-                setExportableObject(prevExportableObject => [...prevExportableObject, newInputObject]);
             });
 
             buttonDrag.addEventListener("dragstart", e => {
