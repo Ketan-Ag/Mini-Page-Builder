@@ -102,22 +102,26 @@ const Home = () => {
 
             buttonDrag.addEventListener("dragend", e => {
                 buttonDrag.classList.remove("opacity-50")
-                const newElement = document.createElement("button");
-                newElement.classList.add("Draggable")
-                newElement.classList.add("DraggableButton")
-                newElement.innerHTML = "Button"
-                newElement.draggable = true
-                newElement.style.position = "absolute"
-                newElement.style.left = `${e.clientX}px`
-                newElement.style.top = `${e.clientY}px`
-                setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-                screen.append(newElement)
-                const newButtonObject = {
-                    tag: "button",
-                    xCord: e.clientX,
-                    yCord: e.clientY,
+                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
+                    alert("Cannot place in sidebar")
+                } else {
+                    const newElement = document.createElement("button");
+                    newElement.classList.add("Draggable")
+                    newElement.classList.add("DraggableButton")
+                    newElement.innerHTML = "Button"
+                    newElement.draggable = true
+                    newElement.style.position = "absolute"
+                    newElement.style.left = `${e.clientX}px`
+                    newElement.style.top = `${e.clientY}px`
+                    setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+                    screen.append(newElement)
+                    const newButtonObject = {
+                        tag: "button",
+                        xCord: e.clientX,
+                        yCord: e.clientY,
+                    }
+                    setExportableObject(prevExportableObject => [...prevExportableObject, newButtonObject]);
                 }
-                setExportableObject(prevExportableObject => [...prevExportableObject, newButtonObject]);
             });
 
             screen.addEventListener('dragover', (e) => {
@@ -249,6 +253,13 @@ const Home = () => {
         })
     })
 
+    useEffect(() => {
+        //useMemo or useCallBack
+        localStorage.removeItem("pageLayout");
+        localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
+
+    }, [ExportableObject])
+
 
     useEffect(() => {
         if (selectedElement != null) {
@@ -296,23 +307,14 @@ const Home = () => {
         Modal.setAppElement("body")
     }, [])
 
-    useEffect(() => {
-        console.log('ExportableObject', ExportableObject)
-    }, [ExportableObject])
-
-    useEffect(() => {
-        console.log('selectedElementRef', selectedElementRef)
-    }, [selectedElementRef.current])
-
-
 
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
-            <div className="bg-red-400 flex-grow relative select-none">
+            <div className="bg-red-400 w-4/5 flex-grow relative select-none">
                 <div ref={screenRef} className="h-full pageBuilderScreen">
                     <button
-                        onClick={() => { 
-                            exportJson(ExportableObject) 
+                        onClick={() => {
+                            exportJson(ExportableObject)
                             setExportableObject([])
                         }}
                         className='absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded outline-none'
@@ -342,7 +344,7 @@ const Home = () => {
                 </Modal>
 
             </div>
-            <div className="bg-[#2D2D2D] w-[20vw] ml-auto p-5">
+            <div className="bg-[#2D2D2D] w-1/5 flex-grow ml-auto p-5">
                 <div className='font-semibold text-2xl text-white select-none'>Blocks</div>
                 <div className="flex flex-col mt-5 gap-2">
                     <div ref={labelRef} className="p-2 bg-white rounded-sm cursor-move flex gap-2 items-center paigeBuilderLabel" draggable="true">
