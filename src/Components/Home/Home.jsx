@@ -120,9 +120,6 @@ const Home = () => {
                 }
             });
 
-            screen.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
         }
 
         return () => {
@@ -138,7 +135,6 @@ const Home = () => {
                 buttonDrag.removeEventListener('dragstart', () => { });
                 buttonDrag.removeEventListener('dragend', () => { });
             }
-            if (screen) screen.removeEventListener('dragover', () => { });
         };
 
     }, [])
@@ -314,7 +310,7 @@ const Home = () => {
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
             <div className="bg-red-400 w-4/5 flex-grow relative select-none">
-                <div ref={screenRef} className="h-full pageBuilderScreen">
+                <div ref={screenRef} onDragOver={(e) => e.preventDefault()} className="h-full pageBuilderScreen">
                     <button
                         onClick={() => {
                             exportJson(ExportableObject)
