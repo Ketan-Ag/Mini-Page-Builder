@@ -126,15 +126,19 @@ const Home = () => {
         }
 
         return () => {
-            if (label && input && screen && buttonDrag) {
+            if (label) {
                 label.removeEventListener('dragstart', () => { });
                 label.removeEventListener('dragend', () => { });
+            }
+            if (input) {
                 input.removeEventListener('dragstart', () => { });
                 input.removeEventListener('dragend', () => { });
+            }
+            if (buttonDrag) {
                 buttonDrag.removeEventListener('dragstart', () => { });
                 buttonDrag.removeEventListener('dragend', () => { });
-                screen.removeEventListener('dragover', () => { });
             }
+            if (screen) screen.removeEventListener('dragover', () => { });
         };
 
     }, [])
@@ -225,36 +229,39 @@ const Home = () => {
 
     }
 
+    useEffect(() => {
+        draggables.forEach(draggable => {
 
-    draggables.forEach(draggable => {
-
-        draggable.addEventListener('dragend', (e) => {
-            const left = Number(draggable.style.left.split("px")[0])
-            const top = Number(draggable.style.top.split("px")[0])
-            setExportableObject((prev) => {
-                return prev.map((obj) => {
-                    if (obj && obj.xCord == left && obj.yCord == top) {
-                        return {
-                            ...obj,
-                            xCord: e.clientX,
-                            yCord: e.clientY
-                        }
-                    } else return obj
+            draggable.addEventListener('dragend', (e) => {
+                const left = Number(draggable.style.left.split("px")[0])
+                const top = Number(draggable.style.top.split("px")[0])
+                setExportableObject((prev) => {
+                    return prev.map((obj) => {
+                        if (obj && obj.xCord == left && obj.yCord == top) {
+                            return {
+                                ...obj,
+                                xCord: e.clientX,
+                                yCord: e.clientY
+                            }
+                        } else return obj
+                    })
                 })
+                draggable.style.left = `${e.clientX}px`
+                draggable.style.top = `${e.clientY}px`
+
+
             })
-            draggable.style.left = `${e.clientX}px`
-            draggable.style.top = `${e.clientY}px`
-
-
         })
-    })
+    }, [draggables])
+
 
     useEffect(() => {
-        //useMemo or useCallBack
-        localStorage.removeItem("pageLayout");
         localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
-
     }, [ExportableObject])
+
+    useEffect(() => {
+        console.log('first')
+    })
 
 
     useEffect(() => {
