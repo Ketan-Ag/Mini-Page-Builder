@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast';
 import Modal from 'react-modal';
 import ModalForm from '../ModalForm/ModalForm';
 import { exportJson } from '../../utils/ExportJson';
@@ -58,7 +59,7 @@ const Home = () => {
             label.addEventListener("dragend", async (e) => {
                 label.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    alert("Cannot place in sidebar")
+                    toast.error("Cannot place item in sidebar")
                 } else {
                     await setLabelState({
                         xCord: e.clientX,
@@ -76,7 +77,7 @@ const Home = () => {
             input.addEventListener("dragend", e => {
                 input.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    alert("Cannot place in sidebar")
+                    toast.error("Cannot place item in sidebar")
                 } else {
                     const newElement = createElement("input", e.clientX, e.clientY, "", "", "", setExportableObject)
                     screen.append(newElement)
@@ -96,7 +97,7 @@ const Home = () => {
             buttonDrag.addEventListener("dragend", e => {
                 buttonDrag.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    alert("Cannot place in sidebar")
+                    toast.error("Cannot place item in sidebar")
                 } else {
                     const newElement = createElement("button", e.clientX, e.clientY, "", "", "", setExportableObject)
                     screen.append(newElement)

@@ -1,4 +1,4 @@
-
+import toast from "react-hot-toast";
 export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, setSelectedElement, setExportableObject) => {
 
     const newElement = document.createElement(type);
@@ -15,23 +15,28 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
     if (type === "button") newElement.innerHTML = "Button"
 
     newElement.ondragend = (e) => {
-        const prevLeft = Number(newElement.style.left.split("px")[0])
-        const prevTop = Number(newElement.style.top.split("px")[0])
-        setExportableObject((prev) => {
-            return prev.map((ele) => {
-                if (ele.xCord === prevLeft && ele.yCord === prevTop) {
-                    return {
-                        ...ele,
-                        xCord: e.clientX,
-                        yCord: e.clientY
-                    };
-                } else {
-                    return ele;
-                }
+        if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
+            toast.error("Cannot place item in sidebar")
+        } else {
+            const prevLeft = Number(newElement.style.left.split("px")[0])
+            const prevTop = Number(newElement.style.top.split("px")[0])
+            setExportableObject((prev) => {
+                return prev.map((ele) => {
+                    if (ele.xCord === prevLeft && ele.yCord === prevTop) {
+                        return {
+                            ...ele,
+                            xCord: e.clientX,
+                            yCord: e.clientY
+                        };
+                    } else {
+                        return ele;
+                    }
+                });
             });
-        });
-        newElement.style.left = `${e.clientX}px`
-        newElement.style.top = `${e.clientY}px`
+            newElement.style.left = `${e.clientX}px`
+            newElement.style.top = `${e.clientY}px`
+        }
+
     }
     newElement.onclick = (e) => {
         if (type === "div") {
