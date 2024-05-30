@@ -78,7 +78,7 @@ const Home = () => {
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     alert("Cannot place in sidebar")
                 } else {
-                    const newElement = createElement("input", e.clientX, e.clientY)
+                    const newElement = createElement("input", e.clientX, e.clientY, "", "", "", setExportableObject)
                     screen.append(newElement)
                     const newInputObject = {
                         tag: "input",
@@ -98,7 +98,7 @@ const Home = () => {
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     alert("Cannot place in sidebar")
                 } else {
-                    const newElement = createElement("button", e.clientX, e.clientY)
+                    const newElement = createElement("button", e.clientX, e.clientY, "", "", "", setExportableObject)
                     screen.append(newElement)
                     const newButtonObject = {
                         tag: "button",
@@ -192,8 +192,9 @@ const Home = () => {
             resetLableState();
 
         } else {
-            const newElement = createElement("div", labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement);
+            const newElement = createElement("div", labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement, setExportableObject);
             if (screenRef.current) screenRef.current.append(newElement);
+
             const newLableObject = {
                 tag: "div",
                 title: labelState.title,
