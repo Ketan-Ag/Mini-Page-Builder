@@ -3,7 +3,7 @@
 This is a page builder made for demonstration purposes.
 You can check it out at [this link](https://mini-page-builder-one.vercel.app/)
 
-# Getting Started
+## Getting Started
 
 Follow these steps to set up and run the project locally.
 
@@ -23,18 +23,42 @@ Change your current directory to the project directory:
 
 Install all the necessary dependencies by running:
 
-### npm install
+### `npm install`
 
 ## Launch the Development Server
 
 To start the development server, run the following command:
 
-### npm run start
+### `npm run start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### Deployment
+## Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+On the home page there is blank screen and a sidebar which contains three elements - label, input and button
+
+User can drag these elements and drop it onto the screen
+
+On dropping the elements a new element is created and added to the screen
+
+On dopping the label element a modal appears for configuration. The modal auto-fills X and Y coordinates based on the drop location.
+Saving the configuration places the component on the page.
+
+Users can drag the elements to change their positions.
+Clicking a element selects it and shows a red border.
+
+Pressing Enter on a label element reopens the configuration modal.
+
+Pressing Delete on a selected element removes it from the page.
+
+All changes (add/update/delete/move) are automatically saved to local storage.
+
+Users can export the current page configuration to a JSON file for sharing or backup.
+
+
+
+
+
+
 
