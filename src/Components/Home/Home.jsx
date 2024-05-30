@@ -210,29 +210,34 @@ const Home = () => {
 
     useEffect(() => {
         const selectedItem = document.querySelectorAll(".selecteddiv");
-        if (selectedItem.length > 0) {
-            window.addEventListener("keydown", async (e) => {
-                if (e.key === "Enter" && selectedItem[0].classList.contains("selecteddiv")) {
-                    setIsAlreadyFormed(prev => true)
-                    await setLabelState({
-                        title: selectedItem[0].textContent,
-                        xCord: Number(selectedItem[0].style.left.split("px")[0]),
-                        yCord: Number(selectedItem[0].style.top.split("px")[0]),
-                        fontSize: Number(selectedItem[0].style.fontSize.split("px")[0]),
-                        fontWeight: parseInt(selectedItem[0].style.fontWeight),
-                    })
+        window.addEventListener("keydown", async (e) => {
+            console.log('first')
+            if (e.key === "Enter" && selectedItem.length > 0 && selectedItem[0].classList.contains("selecteddiv")) {
+                setIsAlreadyFormed(prev => true)
+                await setLabelState({
+                    title: selectedItem[0].textContent,
+                    xCord: Number(selectedItem[0].style.left.split("px")[0]),
+                    yCord: Number(selectedItem[0].style.top.split("px")[0]),
+                    fontSize: Number(selectedItem[0].style.fontSize.split("px")[0]),
+                    fontWeight: parseInt(selectedItem[0].style.fontWeight),
+                })
 
-                    setIsModalOpen(true)
-                }
-                else if (e.key === "Delete" && screenRef.current) {
-                    const deletedElements = [];
-
+                setIsModalOpen(true)
+            }
+            else if (e.key === "Delete") {
+                console.log('delete')
+                const deletedElements = [];
+                if (screenRef.current) {
                     screenRef.current.childNodes.forEach((ele) => {
+                        console.log('ele', ele)
                         if (ele.classList.contains("selecteddiv") || ele.classList.contains("selectedinput") || ele.classList.contains("selectedbutton")) {
                             deletedElements.push(`${ele.style.left}${ele.style.top}`);
                             screenRef.current.removeChild(ele);
                         }
                     })
+
+                    console.log('dell', deletedElements)
+                    console.log('eex', ExportableObject)
 
                     setExportableObject((prev) => {
                         return prev.filter((ele) => {
@@ -241,18 +246,24 @@ const Home = () => {
                     });
                 }
 
-            })
-
-            return () => {
-                window.removeEventListener("keydown", () => { })
             }
+
+        })
+
+        return () => {
+            window.removeEventListener("keydown", () => { })
         }
     }, [selectedElement])
 
 
     useEffect(() => {
+        console.log('Ex', ExportableObject)
         localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
     }, [ExportableObject])
+
+    useEffect(() => {
+        console.log('selectedElemet', selectedElement)
+    }, [selectedElement])
 
     useEffect(() => {
         Modal.setAppElement("body")
