@@ -17,7 +17,6 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
     newElement.ondragend = (e) => {
         const prevLeft = Number(newElement.style.left.split("px")[0])
         const prevTop = Number(newElement.style.top.split("px")[0])
-        console.log('prevLeft, prevTop', prevLeft, prevTop)
         setExportableObject((prev) => {
             return prev.map((ele) => {
                 if (ele.xCord === prevLeft && ele.yCord === prevTop) {
