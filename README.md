@@ -11,13 +11,13 @@ Follow these steps to set up and run the project locally.
 
 First, you need to clone the repository to your local machine. Open your terminal and run the following command:
 
-### https://github.com/Ketan-Ag/Mini-Page-Builder.git
+### `https://github.com/Ketan-Ag/Mini-Page-Builder.git`
 
 ## Navigate to the Project Directory
 
 Change your current directory to the project directory:
 
-### cd mini-page-builder
+### `cd mini-page-builder`
 
 ## Install Dependencies
 
