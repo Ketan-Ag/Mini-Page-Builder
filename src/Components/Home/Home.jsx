@@ -1,28 +1,36 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Modal from 'react-modal';
 import ModalForm from '../ModalForm/ModalForm';
 import { exportJson } from '../../utils/ExportJson';
+import useModalStore from '../../store/modalStore';
+import { createElement } from '../../utils/CreateElement';
+import useElementStore from '../../store/elementStore';
+
 
 const Home = () => {
+
+    const { isModalOpen, setIsModalOpen, labelState, setLabelState, resetLableState } = useModalStore((state) => ({
+        isModalOpen: state.isModalOpen,
+        setIsModalOpen: state.setIsModalOpen,
+        labelState: state.labelState,
+        setLabelState: state.setLabelState,
+        resetLableState: state.resetLableState,
+    }));
+
+    const { selectedElement, setSelectedElement } = useElementStore((state) => ({
+        selectedElement: state.selectedElement,
+        setSelectedElement: state.setSelectedElement
+    }));
+
 
     const labelRef = useRef(null);
     const inputRef = useRef(null);
     const buttonRef = useRef(null);
     const screenRef = useRef(null);
-    const [draggables, setDraggables] = useState([])
-    const [isModalOpen, setisModalOpen] = useState(false);
 
-    const [lableTitle, setLableTitle] = useState("This is a label");
-    const [lableXCord, setLableXCord] = useState();
-    const [lableYCord, setLableYCord] = useState();
-    const [lableFontSize, setLableFontSize] = useState(16)
-    const [lableFontWeight, setLableFontWeight] = useState(300);
-    const [selectedElement, setSelectedElement] = useState(null);
     const [isAlreadyFormed, setIsAlreadyFormed] = useState(false);
-    const selectedElementRef = useRef();
 
     const [ExportableObject, setExportableObject] = useState([])
-
 
     const customStyles = {
         content: {
@@ -40,48 +48,37 @@ const Home = () => {
         const label = labelRef.current;
         const screen = screenRef.current;
         const input = inputRef.current;
-        const buttonDrag = buttonRef.current
+        const buttonDrag = buttonRef.current;
 
         if (label && input && screen && buttonDrag) {
             label.addEventListener("dragstart", e => {
-
+                label.classList.add("opacity-50")
             })
 
-            label.addEventListener("dragend", e => {
-
+            label.addEventListener("dragend", async (e) => {
                 label.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     alert("Cannot place in sidebar")
                 } else {
-                    setLableXCord(prev => e.clientX)
-                    setLableYCord(prev => e.clientY)
-                    setisModalOpen(prev => true);
+                    await setLabelState({
+                        xCord: e.clientX,
+                        yCord: e.clientY
+                    })
+                    setIsModalOpen(true);
                 }
-
-
             });
 
 
             input.addEventListener("dragstart", e => {
-                label.classList.add("opacity-50")
+                input.classList.add("opacity-50")
             })
 
             input.addEventListener("dragend", e => {
-                label.classList.remove("opacity-50")
+                input.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     alert("Cannot place in sidebar")
                 } else {
-
-
-                    const newElement = document.createElement('input');
-                    newElement.draggable = true
-                    newElement.classList.add("Draggable")
-                    newElement.classList.add("DraggableInput")
-                    newElement.style.position = "absolute"
-                    newElement.style.left = `${e.clientX}px`
-                    newElement.style.top = `${e.clientY}px`
-                    newElement.style.fontWeight = 700
-                    setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+                    const newElement = createElement("input", e.clientX, e.clientY)
                     screen.append(newElement)
                     const newInputObject = {
                         tag: "input",
@@ -101,15 +98,7 @@ const Home = () => {
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     alert("Cannot place in sidebar")
                 } else {
-                    const newElement = document.createElement("button");
-                    newElement.classList.add("Draggable")
-                    newElement.classList.add("DraggableButton")
-                    newElement.innerHTML = "Button"
-                    newElement.draggable = true
-                    newElement.style.position = "absolute"
-                    newElement.style.left = `${e.clientX}px`
-                    newElement.style.top = `${e.clientY}px`
-                    setDraggables((prevDraggables) => [...prevDraggables, newElement]);
+                    const newElement = createElement("button", e.clientX, e.clientY)
                     screen.append(newElement)
                     const newButtonObject = {
                         tag: "button",
@@ -140,157 +129,116 @@ const Home = () => {
     }, [])
 
 
+
     useEffect(() => {
         const handleMouseDown = (e) => {
 
             if (e.target == screenRef.current) {
-                // selectedElementRef.current = null
-                // setSelectedElement(null);
-                const selectedLables = document.querySelectorAll(".selectedLable")
-                selectedLables.forEach((ele) => {
-                    ele.classList.remove("selectedLable")
+                document.querySelectorAll(".selecteddiv").forEach((ele) => {
+                    ele.classList.remove("selecteddiv")
+                })
+                document.querySelectorAll(".selectedinput").forEach((ele) => {
+                    ele.classList.remove("selectedinput")
+                })
+                document.querySelectorAll(".selectedbutton").forEach((ele) => {
+                    ele.classList.remove("selectedbutton")
                 })
 
-            } else {
+                setSelectedElement(null)
 
-                document.querySelectorAll(".Draggable").forEach((ele) => {
-                    if (ele == e.target) {
-                        setSelectedElement(prev => ele);
-                        selectedElementRef.current = ele;
-                        ele.classList.add("selectedLable")
-                    }
-                })
             }
 
         }
-
-        screenRef.current.addEventListener("mousedown", handleMouseDown)
+        if (screenRef.current) {
+            screenRef.current.addEventListener("mousedown", handleMouseDown)
+        }
 
         return () => {
-            screenRef.current.removeEventListener("mousedown", () => { });
+            if (screenRef.current) {
+                screenRef.current.removeEventListener("mousedown", () => { });
+            }
+
         }
     }, [])
 
-
-    const createNewLable = () => {
+    const createNewLable = useCallback(async () => {
         if (isAlreadyFormed) {
-            const prevLeft = selectedElementRef.current.style.left
-            const prevTop = selectedElementRef.current.style.top
+            const prevLeft = selectedElement.style.left
+            const prevTop = selectedElement.style.top
 
-            selectedElementRef.current.textContent = lableTitle;
-            selectedElementRef.current.style.left = `${lableXCord}px`
-            selectedElementRef.current.style.top = `${lableYCord}px`
-            selectedElementRef.current.style.fontWeight = lableFontWeight
-            selectedElementRef.current.style.fontSize = `${lableFontSize}px`
+            selectedElement.textContent = labelState.title;
+            selectedElement.style.left = `${labelState.xCord}px`
+            selectedElement.style.top = `${labelState.yCord}px`
+            selectedElement.style.fontWeight = labelState.fontWeight
+            selectedElement.style.fontSize = `${labelState.fontSize}px`
+
+            setIsAlreadyFormed(false);
 
             setExportableObject((prev) => {
                 return prev.map((obj) => {
                     if (obj && `${obj.xCord}px` == prevLeft && `${obj.yCord}px` == prevTop) {
                         return {
                             ...obj,
-                            title: lableTitle,
-                            xCord: parseInt(lableXCord),
-                            yCord: parseInt(lableYCord),
-                            fontSize: parseInt(lableFontSize),
-                            fontWeight: parseInt(lableFontWeight)
+                            title: labelState.title,
+                            xCord: parseInt(labelState.xCord),
+                            yCord: parseInt(labelState.yCord),
+                            fontSize: parseInt(labelState.fontSize),
+                            fontWeight: parseInt(labelState.fontWeight)
                         }
                     } else return obj
                 })
             })
 
+            resetLableState();
+
         } else {
-            const newElement = document.createElement('div');
-            newElement.textContent = lableTitle;
-            newElement.draggable = true;
-            newElement.classList.add("Draggable")
-            newElement.classList.add("DraggableLable")
-            newElement.style.position = "absolute"
-            newElement.style.left = `${lableXCord}px`
-            newElement.style.top = `${lableYCord}px`
-            newElement.style.fontWeight = lableFontWeight
-            newElement.style.fontSize = `${lableFontSize}px`
-            setDraggables((prevDraggables) => [...prevDraggables, newElement]);
-            screenRef.current.append(newElement);
+            const newElement = createElement("div", labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement);
+            if (screenRef.current) screenRef.current.append(newElement);
             const newLableObject = {
                 tag: "div",
-                title: lableTitle,
-                xCord: parseInt(lableXCord),
-                yCord: parseInt(lableYCord),
-                fontSize: parseInt(lableFontSize),
-                fontWeight: parseInt(lableFontWeight)
+                title: labelState.title,
+                xCord: parseInt(labelState.xCord),
+                yCord: parseInt(labelState.yCord),
+                fontSize: parseInt(labelState.fontSize),
+                fontWeight: parseInt(labelState.fontWeight)
             }
             setExportableObject(prevExportableObject => [...prevExportableObject, newLableObject]);
         }
-        setisModalOpen(prev => false)
+        setIsModalOpen(false)
 
-    }
-
-    useEffect(() => {
-        draggables.forEach(draggable => {
-
-            draggable.addEventListener('dragend', (e) => {
-                const left = Number(draggable.style.left.split("px")[0])
-                const top = Number(draggable.style.top.split("px")[0])
-                setExportableObject((prev) => {
-                    return prev.map((obj) => {
-                        if (obj && obj.xCord == left && obj.yCord == top) {
-                            return {
-                                ...obj,
-                                xCord: e.clientX,
-                                yCord: e.clientY
-                            }
-                        } else return obj
-                    })
-                })
-                draggable.style.left = `${e.clientX}px`
-                draggable.style.top = `${e.clientY}px`
-
-
-            })
-        })
-    }, [draggables])
-
+    }, [labelState])
 
     useEffect(() => {
-        localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
-    }, [ExportableObject])
-
-    useEffect(() => {
-        console.log('first')
-    })
-
-
-    useEffect(() => {
-        if (selectedElement != null) {
-            window.addEventListener("keydown", (e) => {
-                if (e.key === "Enter" && selectedElement.classList.contains("selectedLable")) {
+        const selectedItem = document.querySelectorAll(".selecteddiv");
+        if (selectedItem.length > 0) {
+            window.addEventListener("keydown", async (e) => {
+                if (e.key === "Enter" && selectedItem[0].classList.contains("selecteddiv")) {
                     setIsAlreadyFormed(prev => true)
-                    setisModalOpen(prev => true)
-                    setLableTitle(selectedElement.textContent)
-                    setLableYCord(Number(selectedElement.style.top.split("px")[0]))
-                    setLableXCord(Number(selectedElement.style.left.split("px")[0]))
-                    setLableFontSize(Number(selectedElement.style.fontSize.split("px")[0]))
-                    setLableFontWeight(parseInt(selectedElement.style.fontWeight))
+                    await setLabelState({
+                        title: selectedItem[0].textContent,
+                        xCord: Number(selectedItem[0].style.left.split("px")[0]),
+                        yCord: Number(selectedItem[0].style.top.split("px")[0]),
+                        fontSize: Number(selectedItem[0].style.fontSize.split("px")[0]),
+                        fontWeight: parseInt(selectedItem[0].style.fontWeight),
+                    })
+
+                    setIsModalOpen(true)
                 }
-                else if (e.key === "Delete") {
+                else if (e.key === "Delete" && screenRef.current) {
+                    const deletedElements = [];
+
                     screenRef.current.childNodes.forEach((ele) => {
-                        if (ele === selectedElementRef.current) {
-                            setDraggables(draggables => draggables.filter(eleDraggables => {
-                                return eleDraggables !== ele
-                            }))
+                        if (ele.classList.contains("selecteddiv") || ele.classList.contains("selectedinput") || ele.classList.contains("selectedbutton")) {
+                            deletedElements.push(`${ele.style.left}${ele.style.top}`);
                             screenRef.current.removeChild(ele);
-                        }
-                        else {
-                            ele.classList.remove("selectedLable");
                         }
                     })
 
                     setExportableObject((prev) => {
-                        return prev.filter(ele => {
-                            // return ele!=selectedElementRef.current
-                            return (`${ele.xCord}` != selectedElementRef.current.style.left && `${ele.yCord}` != selectedElementRef.current.style.top)
-                        })
-                    })
+                        return prev.filter((ele) => {
+                            return !deletedElements.includes(`${ele.xCord}px${ele.yCord}px`)
+                        });
+                    });
                 }
 
             })
@@ -303,14 +251,23 @@ const Home = () => {
 
 
     useEffect(() => {
+        localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
+    }, [ExportableObject])
+
+    useEffect(() => {
         Modal.setAppElement("body")
     }, [])
 
 
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
-            <div className="bg-red-400 w-4/5 flex-grow relative select-none">
-                <div ref={screenRef} onDragOver={(e) => e.preventDefault()} className="h-full pageBuilderScreen">
+            <div className="bg-gray-200 w-4/5 flex-grow relative select-none">
+                <div
+                    ref={screenRef}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="h-full pageBuilderScreen"
+                >
+
                     <button
                         onClick={() => {
                             exportJson(ExportableObject)
@@ -321,21 +278,10 @@ const Home = () => {
                 </div>
                 <Modal
                     isOpen={isModalOpen}
-                    onRequestClose={() => { setisModalOpen(false) }}
+                    onRequestClose={() => { setIsModalOpen(false) }}
                     style={customStyles}
                 >
                     <ModalForm
-                        setisModalOpen={setisModalOpen}
-                        lableTitle={lableTitle}
-                        setLableTitle={setLableTitle}
-                        lableXCord={lableXCord}
-                        setLableXCord={setLableXCord}
-                        lableYCord={lableYCord}
-                        setLableYCord={setLableYCord}
-                        lableFontSize={lableFontSize}
-                        setLableFontSize={setLableFontSize}
-                        lableFontWeight={lableFontWeight}
-                        setLableFontWeight={setLableFontWeight}
                         createNewLable={createNewLable}
                     />
 

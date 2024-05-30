@@ -8,17 +8,21 @@
 @tailwind components;
 @tailwind utilities;
 
-.selectedLable{
+.Draggable{
+  position: absolute;
+}
+
+.selecteddiv, .selectedinput, .selectedbutton{
   padding: 2px;
   border: 2px solid rgb(221, 82, 82) !important;
 }
 
-.DraggableInput{
+.DraggableInput, .Draggableinput{
   border: 1px solid black;
   outline: none;
 }
 
-.DraggableButton{
+.DraggableButton, .Draggablebutton{
   background-color: #0044C1;
   color: white;
   padding: 10px 20px;
