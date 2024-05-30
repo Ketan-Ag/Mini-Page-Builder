@@ -34,7 +34,7 @@ To start the development server, run the following command:
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-## Features
+## How to use
 
 > On the home page there is blank screen and a sidebar which contains three elements - label, input and button
 
