@@ -1,6 +1,7 @@
-# Getting Started with Create React App
+# Mini Page Builder
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a page builder made for demonstration purposes.
+You can check it out at [this link](https://mini-page-builder-one.vercel.app/)
 
 ## Available Scripts
 
