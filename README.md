@@ -42,13 +42,13 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 > On dropping the elements a new element is created and added to the screen
 
-> On dopping the label element a modal appears for configuration. The modal auto-fills X and Y coordinates based on the drop location.
+> On dopping the elements on the screen, a modal appears for configuration. The modal auto-fills X and Y coordinates based on the drop location.
 Saving the configuration places the component on the page.
 
 > Users can drag the elements to change their positions.
 Clicking a element selects it and shows a red border.
 
-> Pressing Enter on a label element reopens the configuration modal.
+> Pressing Enter on a selected element reopens the configuration modal.
 
 > Pressing Delete on a selected element removes it from the page.
 
