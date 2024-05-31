@@ -4,7 +4,8 @@ const useModalStore = create((set) => ({
     isModalOpen: false,
     setIsModalOpen: (value) => set((state) => ({ isModalOpen: value })),
     labelState: {
-        title: 'This is a label',
+        type:"",
+        title: '',
         xCord: 0,
         yCord: 0,
         fontSize: 16,
@@ -17,7 +18,8 @@ const useModalStore = create((set) => ({
     },
     resetLableState: () => set((state) => ({
         labelState: {
-            title: 'This is a label',
+            type:"",
+            title: '',
             xCord: 0,
             yCord: 0,
             fontSize: 16,

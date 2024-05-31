@@ -17,14 +17,14 @@ const ModalForm = ({
     return (
         <form onSubmit={handleSubmit} className='max-h-[100vh]'>
             <div className="flex justify-between items-center">
-                <div className="">Edit Label</div>
+                <div className="">Edit {labelState.type=="div" ? "label" : labelState.type=="input" ? "Input" : "Button"}</div>
                 <div className="" onClick={() => { setIsModalOpen(false) }}>X</div>
             </div>
             <div className="border-black border-t-[1px] w-full my-4"></div>
             <div className='flex flex-col gap-2 pb-5'>
                 <div className="flex flex-col gap-2">
                     <label htmlFor="LabelText">Text</label>
-                    <input required className='border-[##000000d9] border-[1px] py-2 pl-2 rounded-sm outline-none' type="text" id="LabelText" name="LabelText" value={labelState.title} onChange={(e)=>{setLabelState({title : e.target.value})}} />
+                    <input required={labelState.type=="input"?false : true} className='border-[##000000d9] border-[1px] py-2 pl-2 rounded-sm outline-none' type="text" id="LabelText" name="LabelText" value={labelState.title} onChange={(e)=>{setLabelState({title : e.target.value})}} />
                 </div>
                 <div className="flex flex-col gap-2">
                     <label htmlFor="XCord">X</label>

@@ -1,18 +1,22 @@
 import toast from "react-hot-toast";
 export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, setSelectedElement, setExportableObject) => {
-
     const newElement = document.createElement(type);
     newElement.draggable = true;
     newElement.classList.add("Draggable")
     newElement.classList.add(`Draggable${type}`)
     newElement.style.left = `${xCord}px`
     newElement.style.top = `${yCord}px`
+    newElement.style.fontWeight = fontWeight
+    newElement.style.fontSize = `${fontSize}px`
     if (type === "div") {
         newElement.textContent = title;
-        newElement.style.fontWeight = fontWeight
-        newElement.style.fontSize = `${fontSize}px`
     }
-    if (type === "button") newElement.innerHTML = "Button"
+    if (type === "input") {
+        newElement.placeholder = "Press Enter to edit..."
+        newElement.value = title
+        newElement.readOnly = true
+    }
+    if (type === "button") newElement.innerHTML = title
 
     newElement.ondragend = (e) => {
         if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
@@ -39,22 +43,17 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
 
     }
     newElement.onclick = (e) => {
-        if (type === "div") {
-            if (e.target.classList.contains("selecteddiv")) {
-                e.target.classList.remove("selecteddiv")
-                setSelectedElement(null)
-            } else {
-                const selectedDivs = document.querySelectorAll(".selecteddiv");
-                if (selectedDivs.length > 0) {
-                    selectedDivs.forEach((ele) => { ele.classList.remove("selecteddiv") })
-                }
-                setSelectedElement(newElement)
-                e.target.classList.add("selecteddiv")
-            }
+        if (e.target.classList.contains("selected")) {
+            e.target.classList.remove("selected")
+            setSelectedElement(null)
         } else {
-            e.target.classList.toggle(`selected${type}`);
+            const selectedDivs = document.querySelectorAll(".selected");
+            if (selectedDivs.length > 0) {
+                selectedDivs.forEach((ele) => { ele.classList.remove("selected") })
+            }
+            setSelectedElement(newElement)
+            e.target.classList.add("selected")
         }
-
     }
 
     return newElement;

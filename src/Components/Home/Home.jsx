@@ -62,6 +62,8 @@ const Home = () => {
                     toast.error("Cannot place item in sidebar")
                 } else {
                     await setLabelState({
+                        type: "div",
+                        title: "This is a label",
                         xCord: e.clientX,
                         yCord: e.clientY
                     })
@@ -74,19 +76,18 @@ const Home = () => {
                 input.classList.add("opacity-50")
             })
 
-            input.addEventListener("dragend", e => {
+            input.addEventListener("dragend", async (e) => {
                 input.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     toast.error("Cannot place item in sidebar")
                 } else {
-                    const newElement = createElement("input", e.clientX, e.clientY, "", "", "", setExportableObject)
-                    screen.append(newElement)
-                    const newInputObject = {
-                        tag: "input",
+                    await setLabelState({
+                        type: "input",
+                        title: "This is a input",
                         xCord: e.clientX,
-                        yCord: e.clientY,
-                    }
-                    setExportableObject(prevExportableObject => [...prevExportableObject, newInputObject]);
+                        yCord: e.clientY
+                    })
+                    setIsModalOpen(true);
                 }
             });
 
@@ -94,22 +95,20 @@ const Home = () => {
                 buttonDrag.classList.add("opacity-50")
             })
 
-            buttonDrag.addEventListener("dragend", e => {
+            buttonDrag.addEventListener("dragend", async e => {
                 buttonDrag.classList.remove("opacity-50")
                 if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
                     toast.error("Cannot place item in sidebar")
                 } else {
-                    const newElement = createElement("button", e.clientX, e.clientY, "", "", "", setExportableObject)
-                    screen.append(newElement)
-                    const newButtonObject = {
-                        tag: "button",
+                    await setLabelState({
+                        type: "button",
+                        title: "Button",
                         xCord: e.clientX,
-                        yCord: e.clientY,
-                    }
-                    setExportableObject(prevExportableObject => [...prevExportableObject, newButtonObject]);
+                        yCord: e.clientY
+                    })
+                    setIsModalOpen(true);
                 }
             });
-
         }
 
         return () => {
@@ -126,29 +125,16 @@ const Home = () => {
                 buttonDrag.removeEventListener('dragend', () => { });
             }
         };
-
     }, [])
-
-
 
     useEffect(() => {
         const handleMouseDown = (e) => {
-
             if (e.target == screenRef.current) {
-                document.querySelectorAll(".selecteddiv").forEach((ele) => {
-                    ele.classList.remove("selecteddiv")
+                document.querySelectorAll(".selected").forEach((ele) => {
+                    ele.classList.remove("selected")
                 })
-                document.querySelectorAll(".selectedinput").forEach((ele) => {
-                    ele.classList.remove("selectedinput")
-                })
-                document.querySelectorAll(".selectedbutton").forEach((ele) => {
-                    ele.classList.remove("selectedbutton")
-                })
-
                 setSelectedElement(null)
-
             }
-
         }
         if (screenRef.current) {
             screenRef.current.addEventListener("mousedown", handleMouseDown)
@@ -166,21 +152,22 @@ const Home = () => {
         if (isAlreadyFormed) {
             const prevLeft = selectedElement.style.left
             const prevTop = selectedElement.style.top
-
-            selectedElement.textContent = labelState.title;
+            if (labelState.type == "div") selectedElement.textContent = labelState.title;
+            if (labelState.type == "input") selectedElement.value = labelState.title;
+            if (labelState.type == "button") selectedElement.innerHTML = labelState.title;
             selectedElement.style.left = `${labelState.xCord}px`
             selectedElement.style.top = `${labelState.yCord}px`
             selectedElement.style.fontWeight = labelState.fontWeight
             selectedElement.style.fontSize = `${labelState.fontSize}px`
 
-            setIsAlreadyFormed(false);
+            setIsAlreadyFormed(prev => false);
 
             setExportableObject((prev) => {
                 return prev.map((obj) => {
                     if (obj && `${obj.xCord}px` == prevLeft && `${obj.yCord}px` == prevTop) {
                         return {
                             ...obj,
-                            title: labelState.title,
+                            text: labelState.title,
                             xCord: parseInt(labelState.xCord),
                             yCord: parseInt(labelState.yCord),
                             fontSize: parseInt(labelState.fontSize),
@@ -189,16 +176,13 @@ const Home = () => {
                     } else return obj
                 })
             })
-
             resetLableState();
-
         } else {
-            const newElement = createElement("div", labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement, setExportableObject);
+            const newElement = createElement(labelState.type, labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement, setExportableObject);
             if (screenRef.current) screenRef.current.append(newElement);
-
             const newLableObject = {
-                tag: "div",
-                title: labelState.title,
+                tag: labelState.type,
+                text: labelState.title,
                 xCord: parseInt(labelState.xCord),
                 yCord: parseInt(labelState.yCord),
                 fontSize: parseInt(labelState.fontSize),
@@ -207,44 +191,43 @@ const Home = () => {
             setExportableObject(prevExportableObject => [...prevExportableObject, newLableObject]);
         }
         setIsModalOpen(false)
-
     }, [labelState])
 
     useEffect(() => {
-        const selectedItem = document.querySelectorAll(".selecteddiv");
-        window.addEventListener("keydown", async (e) => {
-            if (e.key === "Enter" && selectedItem.length > 0 && selectedItem[0].classList.contains("selecteddiv")) {
+        const handleKeyDown = async (e) => {
+            if (e.key === "Enter" && document.querySelectorAll(".selected").length > 0) {
                 setIsAlreadyFormed(prev => true)
                 await setLabelState({
-                    title: selectedItem[0].textContent,
-                    xCord: Number(selectedItem[0].style.left.split("px")[0]),
-                    yCord: Number(selectedItem[0].style.top.split("px")[0]),
-                    fontSize: Number(selectedItem[0].style.fontSize.split("px")[0]),
-                    fontWeight: parseInt(selectedItem[0].style.fontWeight),
+                    type: selectedElement.tagName.toLowerCase(),
+                    title: selectedElement.tagName == "DIV" ? selectedElement.textContent : selectedElement.tagName == "INPUT" ? selectedElement.value : selectedElement.innerHTML,
+                    xCord: Number(selectedElement.style.left.split("px")[0]),
+                    yCord: Number(selectedElement.style.top.split("px")[0]),
+                    fontSize: Number(selectedElement.style.fontSize.split("px")[0]),
+                    fontWeight: parseInt(selectedElement.style.fontWeight),
                 })
-
                 setIsModalOpen(true)
             }
-            else if (e.key === "Delete") {
-                const deletedElements = [];
+            else if (e.key === "Delete" && document.querySelectorAll(".selected").length > 0) {
                 if (screenRef.current) {
+                    setExportableObject((prev) => {
+                        return prev.filter((ele) => {
+                            return `${selectedElement.style.left}${selectedElement.style.top}` != `${ele.xCord}px${ele.yCord}px`
+                        })
+                    })
+
                     screenRef.current.childNodes.forEach((ele) => {
-                        if (ele.classList.contains("selecteddiv") || ele.classList.contains("selectedinput") || ele.classList.contains("selectedbutton")) {
-                            deletedElements.push(`${ele.style.left}${ele.style.top}`);
+                        if (ele.classList.contains("selected")) {
                             screenRef.current.removeChild(ele);
                         }
                     })
-
-                    setExportableObject((prev) => {
-                        return prev.filter((ele) => {
-                            return !deletedElements.includes(`${ele.xCord}px${ele.yCord}px`)
-                        });
-                    });
+                    setSelectedElement(null)
                 }
-
             }
+        }
 
-        })
+        if (selectedElement !== null) {
+            window.addEventListener("keydown", handleKeyDown);
+        }
 
         return () => {
             window.removeEventListener("keydown", () => { })
@@ -259,7 +242,6 @@ const Home = () => {
     useEffect(() => {
         Modal.setAppElement("body")
     }, [])
-
 
     return (
         <div className='h-screen w-screen flex overflow-hidden'>
@@ -283,11 +265,7 @@ const Home = () => {
                     onRequestClose={() => { setIsModalOpen(false) }}
                     style={customStyles}
                 >
-                    <ModalForm
-                        createNewLable={createNewLable}
-                    />
-
-
+                    <ModalForm createNewLable={createNewLable} />
                 </Modal>
 
             </div>
