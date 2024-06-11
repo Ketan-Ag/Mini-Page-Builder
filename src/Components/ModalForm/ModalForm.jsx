@@ -1,30 +1,34 @@
-import React, { useState } from 'react'
+import React from 'react'
 import useModalStore from '../../store/modalStore';
 
 const ModalForm = ({
-    createNewLable
+    onModalSubmit
 }) => {
 
-    const { setIsModalOpen, labelState, setLabelState, resetLableState } = useModalStore();
+    const { setIsModalOpen, labelState, setLabelState, resetLabelState } = useModalStore((state) => ({
+        setIsModalOpen: state.setIsModalOpen,
+        labelState: state.labelState,
+        setLabelState: state.setLabelState,
+        resetLabelState: state.resetLabelState,
+    }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await createNewLable();
-        resetLableState();
-
+        await onModalSubmit();
+        resetLabelState();
     }
 
     return (
         <form onSubmit={handleSubmit} className='max-h-[100vh]'>
             <div className="flex justify-between items-center">
-                <div className="">Edit {labelState.type=="div" ? "label" : labelState.type=="input" ? "Input" : "Button"}</div>
+                <div>Edit {labelState.type==="div" ? "label" : labelState.type==="input" ? "Input" : "Button"}</div>
                 <div className="" onClick={() => { setIsModalOpen(false) }}>X</div>
             </div>
             <div className="border-black border-t-[1px] w-full my-4"></div>
             <div className='flex flex-col gap-2 pb-5'>
                 <div className="flex flex-col gap-2">
                     <label htmlFor="LabelText">Text</label>
-                    <input required={labelState.type=="input"?false : true} className='border-[##000000d9] border-[1px] py-2 pl-2 rounded-sm outline-none' type="text" id="LabelText" name="LabelText" value={labelState.title} onChange={(e)=>{setLabelState({title : e.target.value})}} />
+                    <input required={labelState.type==="input"?false : true} className='border-[##000000d9] border-[1px] py-2 pl-2 rounded-sm outline-none' type="text" id="LabelText" name="LabelText" value={labelState.title} onChange={(e)=>{setLabelState({title : e.target.value})}} />
                 </div>
                 <div className="flex flex-col gap-2">
                     <label htmlFor="XCord">X</label>
@@ -45,9 +49,7 @@ const ModalForm = ({
                 <div className="">
                     <button className='bg-[#0044C1] py-[10px] px-[20px] text-white'>Save Changes</button>
                 </div>
-
             </div>
-
         </form>
     )
 }

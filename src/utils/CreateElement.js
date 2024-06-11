@@ -40,12 +40,11 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
             newElement.style.left = `${e.clientX}px`
             newElement.style.top = `${e.clientY}px`
         }
-
     }
-    newElement.onclick = (e) => {
+    newElement.onclick = async(e) => {
         if (e.target.classList.contains("selected")) {
+            await setSelectedElement(null)
             e.target.classList.remove("selected")
-            setSelectedElement(null)
         } else {
             const selectedDivs = document.querySelectorAll(".selected");
             if (selectedDivs.length > 0) {
@@ -57,5 +56,4 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
     }
 
     return newElement;
-
 }

@@ -16,7 +16,7 @@ const useModalStore = create((set) => ({
             labelState: { ...state.labelState, ...newState }
         }))
     },
-    resetLableState: () => set((state) => ({
+    resetLabelState: () => set((state) => ({
         labelState: {
             type:"",
             title: '',

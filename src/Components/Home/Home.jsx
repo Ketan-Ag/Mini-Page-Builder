@@ -6,23 +6,23 @@ import { exportJson } from '../../utils/ExportJson';
 import useModalStore from '../../store/modalStore';
 import { createElement } from '../../utils/CreateElement';
 import useElementStore from '../../store/elementStore';
-
+import { clearScreen } from '../../utils/ClearScreen';
 
 const Home = () => {
 
-    const { isModalOpen, setIsModalOpen, labelState, setLabelState, resetLableState } = useModalStore((state) => ({
+    const { isModalOpen, setIsModalOpen, labelState, setLabelState, resetLabelState } = useModalStore((state) => ({
         isModalOpen: state.isModalOpen,
         setIsModalOpen: state.setIsModalOpen,
         labelState: state.labelState,
         setLabelState: state.setLabelState,
-        resetLableState: state.resetLableState,
+        resetLabelState: state.resetLabelState,
     }));
 
-    const { selectedElement, setSelectedElement } = useElementStore((state) => ({
+    const { selectedElement, setSelectedElement, resetSelectedElements } = useElementStore((state) => ({
         selectedElement: state.selectedElement,
-        setSelectedElement: state.setSelectedElement
+        setSelectedElement: state.setSelectedElement,
+        resetSelectedElements: state.resetSelectedElements
     }));
-
 
     const labelRef = useRef(null);
     const inputRef = useRef(null);
@@ -46,115 +46,86 @@ const Home = () => {
     };
 
     useEffect(() => {
-        const label = labelRef.current;
-        const screen = screenRef.current;
-        const input = inputRef.current;
-        const buttonDrag = buttonRef.current;
-
-        if (label && input && screen && buttonDrag) {
-            label.addEventListener("dragstart", e => {
-                label.classList.add("opacity-50")
-            })
-
-            label.addEventListener("dragend", async (e) => {
-                label.classList.remove("opacity-50")
-                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    toast.error("Cannot place item in sidebar")
-                } else {
-                    await setLabelState({
-                        type: "div",
-                        title: "This is a label",
-                        xCord: e.clientX,
-                        yCord: e.clientY
-                    })
-                    setIsModalOpen(true);
-                }
-            });
-
-
-            input.addEventListener("dragstart", e => {
-                input.classList.add("opacity-50")
-            })
-
-            input.addEventListener("dragend", async (e) => {
-                input.classList.remove("opacity-50")
-                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    toast.error("Cannot place item in sidebar")
-                } else {
-                    await setLabelState({
-                        type: "input",
-                        title: "This is a input",
-                        xCord: e.clientX,
-                        yCord: e.clientY
-                    })
-                    setIsModalOpen(true);
-                }
-            });
-
-            buttonDrag.addEventListener("dragstart", e => {
-                buttonDrag.classList.add("opacity-50")
-            })
-
-            buttonDrag.addEventListener("dragend", async e => {
-                buttonDrag.classList.remove("opacity-50")
-                if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                    toast.error("Cannot place item in sidebar")
-                } else {
-                    await setLabelState({
-                        type: "button",
-                        title: "Button",
-                        xCord: e.clientX,
-                        yCord: e.clientY
-                    })
-                    setIsModalOpen(true);
-                }
-            });
+        const handleDragStartEvent = (e, element) => {
+            element.classList.add('opacity-50');
         }
 
-        return () => {
-            if (label) {
-                label.removeEventListener('dragstart', () => { });
-                label.removeEventListener('dragend', () => { });
+        const handleDragEndEvent = async (e, element, typeOfElement, titleOfElement) => {
+            element.classList.remove('opacity-50');
+            if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
+                toast.error("Cannot place item in sidebare")
+            } else {
+                await setLabelState({
+                    type: typeOfElement,
+                    title: titleOfElement,
+                    xCord: e.clientX,
+                    yCord: e.clientY
+                })
+                setIsModalOpen(true);
             }
-            if (input) {
-                input.removeEventListener('dragstart', () => { });
-                input.removeEventListener('dragend', () => { });
+        }
+
+        const addEventHandlers = (element, typeOfElement, titleOfElement) => {
+            if (element) {
+                element.addEventListener('dragstart', (e) => handleDragStartEvent(e, element));
+                element.addEventListener('dragend', (e) => handleDragEndEvent(e, element, typeOfElement, titleOfElement));
             }
-            if (buttonDrag) {
-                buttonDrag.removeEventListener('dragstart', () => { });
-                buttonDrag.removeEventListener('dragend', () => { });
+        }
+
+        const removeEventHandlers = (element) => {
+            if (element) {
+                element.removeEventListener('dragstart', handleDragStartEvent);
+                element.removeEventListener('dragend', handleDragEndEvent);
             }
         };
-    }, [])
+
+        const label = labelRef.current;
+        const input = inputRef.current;
+        const button = buttonRef.current;
+
+        addEventHandlers(label, 'div', 'This is a label');
+        addEventHandlers(input, 'input', 'This is a input');
+        addEventHandlers(button, 'button', 'Button');
+
+        return () => {
+            removeEventHandlers(label);
+            removeEventHandlers(input);
+            removeEventHandlers(button);
+        };
+    }, [setIsModalOpen, setLabelState])
 
     useEffect(() => {
-        const handleMouseDown = (e) => {
-            if (e.target == screenRef.current) {
+        const screen = screenRef.current;
+        const handleMouseDownEvent = (e) => {
+            if (e.target === screen) {
                 document.querySelectorAll(".selected").forEach((ele) => {
                     ele.classList.remove("selected")
                 })
-                setSelectedElement(null)
+                resetSelectedElements()
             }
         }
-        if (screenRef.current) {
-            screenRef.current.addEventListener("mousedown", handleMouseDown)
+        if (screen) {
+            screen.addEventListener("mousedown", handleMouseDownEvent)
         }
 
         return () => {
-            if (screenRef.current) {
-                screenRef.current.removeEventListener("mousedown", () => { });
+            if (screen) {
+                screen.removeEventListener("mousedown", handleMouseDownEvent);
             }
-
         }
-    }, [])
+    }, [resetSelectedElements])
 
-    const createNewLable = useCallback(async () => {
-        if (isAlreadyFormed) {
+
+    const onModalSubmit = useCallback(async () => {
+
+        const updateExistingElement = () => {
             const prevLeft = selectedElement.style.left
             const prevTop = selectedElement.style.top
-            if (labelState.type == "div") selectedElement.textContent = labelState.title;
-            if (labelState.type == "input") selectedElement.value = labelState.title;
-            if (labelState.type == "button") selectedElement.innerHTML = labelState.title;
+
+            if (labelState.type === "div") selectedElement.textContent = labelState.title;
+            if (labelState.type === "input") selectedElement.value = labelState.title;
+            if (labelState.type === "button") selectedElement.innerHTML = labelState.title;
+
             selectedElement.style.left = `${labelState.xCord}px`
             selectedElement.style.top = `${labelState.yCord}px`
             selectedElement.style.fontWeight = labelState.fontWeight
@@ -164,7 +135,7 @@ const Home = () => {
 
             setExportableObject((prev) => {
                 return prev.map((obj) => {
-                    if (obj && `${obj.xCord}px` == prevLeft && `${obj.yCord}px` == prevTop) {
+                    if (obj && `${obj.xCord}px` === prevLeft && `${obj.yCord}px` === prevTop) {
                         return {
                             ...obj,
                             text: labelState.title,
@@ -176,11 +147,13 @@ const Home = () => {
                     } else return obj
                 })
             })
-            resetLableState();
-        } else {
-            const newElement = createElement(labelState.type, labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement, setExportableObject);
+            resetLabelState();
+        }
+
+        const createNewElement = async () => {
+            const newElement = await createElement(labelState.type, labelState.xCord, labelState.yCord, labelState.title, labelState.fontWeight, labelState.fontSize, setSelectedElement, setExportableObject);
             if (screenRef.current) screenRef.current.append(newElement);
-            const newLableObject = {
+            const newlabelObject = {
                 tag: labelState.type,
                 text: labelState.title,
                 xCord: parseInt(labelState.xCord),
@@ -188,18 +161,24 @@ const Home = () => {
                 fontSize: parseInt(labelState.fontSize),
                 fontWeight: parseInt(labelState.fontWeight)
             }
-            setExportableObject(prevExportableObject => [...prevExportableObject, newLableObject]);
+            setExportableObject(prevExportableObject => [...prevExportableObject, newlabelObject]);
+        }
+
+        if (isAlreadyFormed) {
+            updateExistingElement();
+        } else {
+            createNewElement();
         }
         setIsModalOpen(false)
-    }, [labelState])
+    }, [isAlreadyFormed, labelState, resetLabelState, selectedElement, setIsModalOpen, setSelectedElement])
 
     useEffect(() => {
         const handleKeyDown = async (e) => {
-            if (e.key === "Enter" && document.querySelectorAll(".selected").length > 0) {
+            if (e.key === "Enter" && selectedElement !== null) {
                 setIsAlreadyFormed(prev => true)
                 await setLabelState({
                     type: selectedElement.tagName.toLowerCase(),
-                    title: selectedElement.tagName == "DIV" ? selectedElement.textContent : selectedElement.tagName == "INPUT" ? selectedElement.value : selectedElement.innerHTML,
+                    title: selectedElement.tagName === "DIV" ? selectedElement.textContent : selectedElement.tagName === "INPUT" ? selectedElement.value : selectedElement.innerHTML,
                     xCord: Number(selectedElement.style.left.split("px")[0]),
                     yCord: Number(selectedElement.style.top.split("px")[0]),
                     fontSize: Number(selectedElement.style.fontSize.split("px")[0]),
@@ -209,18 +188,13 @@ const Home = () => {
             }
             else if (e.key === "Delete" && document.querySelectorAll(".selected").length > 0) {
                 if (screenRef.current) {
+                    screenRef.current.removeChild(selectedElement);
                     setExportableObject((prev) => {
                         return prev.filter((ele) => {
-                            return `${selectedElement.style.left}${selectedElement.style.top}` != `${ele.xCord}px${ele.yCord}px`
+                            return `${selectedElement.style.left}${selectedElement.style.top}` !== `${ele.xCord}px${ele.yCord}px`
                         })
                     })
-
-                    screenRef.current.childNodes.forEach((ele) => {
-                        if (ele.classList.contains("selected")) {
-                            screenRef.current.removeChild(ele);
-                        }
-                    })
-                    setSelectedElement(null)
+                    resetSelectedElements()
                 }
             }
         }
@@ -230,10 +204,20 @@ const Home = () => {
         }
 
         return () => {
-            window.removeEventListener("keydown", () => { })
+            window.removeEventListener("keydown", handleKeyDown)
         }
-    }, [selectedElement])
+    }, [selectedElement, resetSelectedElements, setIsModalOpen, setLabelState])
 
+    useEffect(() => {
+        const savedLayout = window.localStorage.getItem('pageLayout');
+        if (savedLayout) {
+            JSON.parse(savedLayout).forEach((obj) => {
+                const newElement = createElement(obj.tag, obj.xCord, obj.yCord, obj.text, obj.fontWeight, obj.fontSize, setSelectedElement, setExportableObject);
+                screenRef.current.append(newElement);
+                setExportableObject(prevExportableObject => [...prevExportableObject, obj]);
+            });
+        }
+    }, [setSelectedElement]);
 
     useEffect(() => {
         localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
@@ -251,11 +235,20 @@ const Home = () => {
                     onDragOver={(e) => e.preventDefault()}
                     className="h-full pageBuilderScreen"
                 >
+                    <button
+                        onClick={() => {
+                            resetSelectedElements()
+                            setExportableObject([])
+                            clearScreen(screenRef)
+                        }}
+                        className='absolute top-2 left-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded outline-none'
+                    >Clear Screen</button>
 
                     <button
                         onClick={() => {
                             exportJson(ExportableObject)
                             setExportableObject([])
+                            clearScreen(screenRef)
                         }}
                         className='absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded outline-none'
                     >Export</button>
@@ -265,7 +258,7 @@ const Home = () => {
                     onRequestClose={() => { setIsModalOpen(false) }}
                     style={customStyles}
                 >
-                    <ModalForm createNewLable={createNewLable} />
+                    <ModalForm onModalSubmit={onModalSubmit} />
                 </Modal>
 
             </div>
