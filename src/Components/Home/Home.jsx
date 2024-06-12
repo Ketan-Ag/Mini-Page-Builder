@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import toast from 'react-hot-toast';
 import Modal from 'react-modal';
 import ModalForm from '../ModalForm/ModalForm';
 import { exportJson } from '../../utils/ExportJson';
@@ -7,10 +6,13 @@ import useModalStore from '../../store/modalStore';
 import { createElement } from '../../utils/CreateElement';
 import useElementStore from '../../store/elementStore';
 import { clearScreen } from '../../utils/ClearScreen';
+import useEventHandler from '../../hooks/useDragEventHandler';
+import useMouseDownHandler from '../../hooks/useMouseDownHandler';
+import useKeyDownHandler from '../../hooks/useKeyDownHandler';
 
 const Home = () => {
 
-    const { isModalOpen, setIsModalOpen, labelState, setLabelState, resetLabelState } = useModalStore((state) => ({
+    const { isModalOpen, setIsModalOpen, labelState, resetLabelState } = useModalStore((state) => ({
         isModalOpen: state.isModalOpen,
         setIsModalOpen: state.setIsModalOpen,
         labelState: state.labelState,
@@ -45,76 +47,9 @@ const Home = () => {
         },
     };
 
-    useEffect(() => {
-        const handleDragStartEvent = (e, element) => {
-            element.classList.add('opacity-50');
-        }
-
-        const handleDragEndEvent = async (e, element, typeOfElement, titleOfElement) => {
-            element.classList.remove('opacity-50');
-            if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
-                toast.error("Cannot place item in sidebare")
-            } else {
-                await setLabelState({
-                    type: typeOfElement,
-                    title: titleOfElement,
-                    xCord: e.clientX,
-                    yCord: e.clientY
-                })
-                setIsModalOpen(true);
-            }
-        }
-
-        const addEventHandlers = (element, typeOfElement, titleOfElement) => {
-            if (element) {
-                element.addEventListener('dragstart', (e) => handleDragStartEvent(e, element));
-                element.addEventListener('dragend', (e) => handleDragEndEvent(e, element, typeOfElement, titleOfElement));
-            }
-        }
-
-        const removeEventHandlers = (element) => {
-            if (element) {
-                element.removeEventListener('dragstart', handleDragStartEvent);
-                element.removeEventListener('dragend', handleDragEndEvent);
-            }
-        };
-
-        const label = labelRef.current;
-        const input = inputRef.current;
-        const button = buttonRef.current;
-
-        addEventHandlers(label, 'div', 'This is a label');
-        addEventHandlers(input, 'input', 'This is a input');
-        addEventHandlers(button, 'button', 'Button');
-
-        return () => {
-            removeEventHandlers(label);
-            removeEventHandlers(input);
-            removeEventHandlers(button);
-        };
-    }, [setIsModalOpen, setLabelState])
-
-    useEffect(() => {
-        const screen = screenRef.current;
-        const handleMouseDownEvent = (e) => {
-            if (e.target === screen) {
-                document.querySelectorAll(".selected").forEach((ele) => {
-                    ele.classList.remove("selected")
-                })
-                resetSelectedElements()
-            }
-        }
-        if (screen) {
-            screen.addEventListener("mousedown", handleMouseDownEvent)
-        }
-
-        return () => {
-            if (screen) {
-                screen.removeEventListener("mousedown", handleMouseDownEvent);
-            }
-        }
-    }, [resetSelectedElements])
-
+    useEventHandler(labelRef, inputRef, buttonRef);
+    useMouseDownHandler(screenRef);
+    useKeyDownHandler(setIsAlreadyFormed, screenRef, setExportableObject);
 
     const onModalSubmit = useCallback(async () => {
 
@@ -171,42 +106,6 @@ const Home = () => {
         }
         setIsModalOpen(false)
     }, [isAlreadyFormed, labelState, resetLabelState, selectedElement, setIsModalOpen, setSelectedElement])
-
-    useEffect(() => {
-        const handleKeyDown = async (e) => {
-            if (e.key === "Enter" && selectedElement !== null) {
-                setIsAlreadyFormed(prev => true)
-                await setLabelState({
-                    type: selectedElement.tagName.toLowerCase(),
-                    title: selectedElement.tagName === "DIV" ? selectedElement.textContent : selectedElement.tagName === "INPUT" ? selectedElement.value : selectedElement.innerHTML,
-                    xCord: Number(selectedElement.style.left.split("px")[0]),
-                    yCord: Number(selectedElement.style.top.split("px")[0]),
-                    fontSize: Number(selectedElement.style.fontSize.split("px")[0]),
-                    fontWeight: parseInt(selectedElement.style.fontWeight),
-                })
-                setIsModalOpen(true)
-            }
-            else if (e.key === "Delete" && document.querySelectorAll(".selected").length > 0) {
-                if (screenRef.current) {
-                    screenRef.current.removeChild(selectedElement);
-                    setExportableObject((prev) => {
-                        return prev.filter((ele) => {
-                            return `${selectedElement.style.left}${selectedElement.style.top}` !== `${ele.xCord}px${ele.yCord}px`
-                        })
-                    })
-                    resetSelectedElements()
-                }
-            }
-        }
-
-        if (selectedElement !== null) {
-            window.addEventListener("keydown", handleKeyDown);
-        }
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown)
-        }
-    }, [selectedElement, resetSelectedElements, setIsModalOpen, setLabelState])
 
     useEffect(() => {
         const savedLayout = window.localStorage.getItem('pageLayout');
