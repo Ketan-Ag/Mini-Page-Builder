@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import useElementStore from "../store/elementStore";
 
+//Add an event listener to listen to clicks on the screen
 const useMouseDownHandler = (screenRef) => {
 
     const { resetSelectedElements } = useElementStore((state) => ({

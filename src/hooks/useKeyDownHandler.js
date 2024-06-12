@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import useModalStore from "../store/modalStore";
 import useElementStore from "../store/elementStore";
 
+//Add event listener to the window to detect the enter and delete key press
 const useKeyDownHandler = (setIsAlreadyFormed, screenRef, setExportableObject) => {
     const { setIsModalOpen, setLabelState } = useModalStore((state) => ({
         setIsModalOpen: state.setIsModalOpen,
@@ -32,6 +33,7 @@ const useKeyDownHandler = (setIsAlreadyFormed, screenRef, setExportableObject) =
                     screenRef.current.removeChild(selectedElement);
                     setExportableObject((prev) => {
                         return prev.filter((ele) => {
+                            // Matching the elements using their x and y positions
                             return `${selectedElement.style.left}${selectedElement.style.top}` !== `${ele.xCord}px${ele.yCord}px`
                         })
                     })

@@ -6,7 +6,7 @@ import useModalStore from '../../store/modalStore';
 import { createElement } from '../../utils/CreateElement';
 import useElementStore from '../../store/elementStore';
 import { clearScreen } from '../../utils/ClearScreen';
-import useEventHandler from '../../hooks/useDragEventHandler';
+import useDragEventHandler from '../../hooks/useDragEventHandler';
 import useMouseDownHandler from '../../hooks/useMouseDownHandler';
 import useKeyDownHandler from '../../hooks/useKeyDownHandler';
 
@@ -47,7 +47,8 @@ const Home = () => {
         },
     };
 
-    useEventHandler(labelRef, inputRef, buttonRef);
+    // Custom hooks to handle drag, click, and key press events
+    useDragEventHandler(labelRef, inputRef, buttonRef);
     useMouseDownHandler(screenRef);
     useKeyDownHandler(setIsAlreadyFormed, screenRef, setExportableObject);
 
@@ -70,6 +71,7 @@ const Home = () => {
 
             setExportableObject((prev) => {
                 return prev.map((obj) => {
+                    // Matching the elements using their x and y positions
                     if (obj && `${obj.xCord}px` === prevLeft && `${obj.yCord}px` === prevTop) {
                         return {
                             ...obj,
@@ -99,6 +101,7 @@ const Home = () => {
             setExportableObject(prevExportableObject => [...prevExportableObject, newlabelObject]);
         }
 
+        // Whenver user submits the form, check if element already exists, then update or create a new element
         if (isAlreadyFormed) {
             updateExistingElement();
         } else {
@@ -107,6 +110,7 @@ const Home = () => {
         setIsModalOpen(false)
     }, [isAlreadyFormed, labelState, resetLabelState, selectedElement, setIsModalOpen, setSelectedElement])
 
+    // Restore the layout from the localstorage on page refresh
     useEffect(() => {
         const savedLayout = window.localStorage.getItem('pageLayout');
         if (savedLayout) {
@@ -118,6 +122,7 @@ const Home = () => {
         }
     }, [setSelectedElement]);
 
+    // Update the localstorage with changes in any elements
     useEffect(() => {
         localStorage.setItem("pageLayout", JSON.stringify(ExportableObject));
     }, [ExportableObject])

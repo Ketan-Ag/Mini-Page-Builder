@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import toast from "react-hot-toast";
 import useModalStore from "../store/modalStore";
 
-const useEventHandler = (labelRef, inputRef, buttonRef) => {
+//Add the drag event listeners to the elements
+const useDragEventHandler = (labelRef, inputRef, buttonRef) => {
 
     const { setIsModalOpen, setLabelState } = useModalStore((state) => ({
         setIsModalOpen: state.setIsModalOpen,
@@ -60,4 +61,4 @@ const useEventHandler = (labelRef, inputRef, buttonRef) => {
 
 }
 
-export default useEventHandler;
+export default useDragEventHandler;

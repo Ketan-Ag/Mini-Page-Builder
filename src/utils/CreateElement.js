@@ -1,4 +1,6 @@
 import toast from "react-hot-toast";
+
+// Function to create a new element to add to the screen
 export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, setSelectedElement, setExportableObject) => {
     const newElement = document.createElement(type);
     newElement.draggable = true;
@@ -18,6 +20,7 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
     }
     if (type === "button") newElement.innerHTML = title
 
+    // Add the dragend event handler to update the position on moving the element across the screen
     newElement.ondragend = (e) => {
         if (e.clientX >= parseInt(window.innerWidth * 0.8)) {
             toast.error("Cannot place item in sidebar")
@@ -41,6 +44,8 @@ export const createElement = (type, xCord, yCord, title, fontWeight, fontSize, s
             newElement.style.top = `${e.clientY}px`
         }
     }
+
+    // Add the onclick event to select or unselect elements
     newElement.onclick = async(e) => {
         if (e.target.classList.contains("selected")) {
             await setSelectedElement(null)
